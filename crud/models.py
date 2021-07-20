@@ -1,0 +1,87 @@
+from django.db import models
+
+
+
+# Define your first model from here:
+class User(models.Model):
+    # CharField for user's first name
+    first_name = models.CharField(null=False, max_length=30, default='john')
+    # CharField for user's last name
+    last_name = models.CharField(null=False, max_length=30, default='doe')
+    # CharField for user's date for birth
+    dob = models.DateField(null=True)
+
+
+    # Learner model
+class Learner(User):
+    STUDENT = 'student'
+    DEVELOPER = 'developer'
+    DATA_SCIENTIST = 'data_scientist'
+    DATABASE_ADMIN = 'dba'
+    OCCUPATION_CHOICES = [
+        (STUDENT, 'Student'),
+        (DEVELOPER, 'Developer'),
+        (DATA_SCIENTIST, 'Data Scientist'),
+        (DATABASE_ADMIN, 'Database Admin')
+    ]
+    occupation = models.CharField(
+        null=False,
+        max_length=20,
+        choices=OCCUPATION_CHOICES,
+        default=STUDENT
+    )
+    social_link = models.URLField(max_length=200)
+
+    ##<HINT> Create a __str__ method returning a string presentation
+    def __str__(self):
+        return  self.first_name + self.last_name +self.occupation
+    # Instructor model
+class Instructor(User):
+    full_time = models.BooleanField(default=True)
+    total_learners = models.IntegerField()
+
+    # Create a toString method for object string representation
+    def __str__(self):
+        return "First name: " + self.first_name + ", " + \
+               "Last name: " + self.last_name + ", " + \
+               "Is full time: " + str(self.full_time) + ", " + \
+               "Total Learners: " + str(self.total_learners)
+
+# Course model
+class Course(models.Model):
+    name = models.CharField(null=False, max_length=100, default='online course')
+    description = models.CharField(max_length=500)
+    # Many-To-Many relationship with Instructors
+    instructors = models.ManyToManyField(Instructor)
+    # Many-To-Many relationship with Learner via Enrollment relationship
+    learners = models.ManyToManyField(Learner, through='Enrollment')
+
+    def __str__(self):
+        return "Name: " + self.name + "," + \
+                 "Description: " + self.description
+class Lesson(models.Model):
+    title = models.CharField(max_length=200, default="title")
+    course = models.ForeignKey(Course, null=True, on_delete=models.CASCADE)
+    content = models.TextField()
+
+            
+class Enrollment(models.Model):
+    AUDIT = 'audit'
+    HONOR = 'honor'
+    COURSE_MODES = [
+        (AUDIT, 'Audit'),
+        (HONOR, 'Honor'),
+    ]
+    # Add a learner foreign key
+    learner = models.ForeignKey(Learner, on_delete=models.CASCADE)
+    # Add a course foreign key
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    # Enrollment date
+ 
+    from django.utils.timezone import now
+
+    date_enrolled = models.DateField(default=now)
+    # Enrollment mode
+    mode = models.CharField(max_length=5, choices=COURSE_MODES, default=AUDIT)
+
+    
